@@ -9,6 +9,7 @@ import os
 import gspread
 from google import genai
 from dotenv import load_dotenv
+from telegram.error import BadRequest
 
 load_dotenv()
 
@@ -177,6 +178,45 @@ async def receive_cargo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     return ConversationHandler.END
 
+
+async def handle_fallback_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_message = update.message.text
+
+    prompt = f"""
+    Você é um assistente de IA amigável para um bot de comunicação interna de uma empresa.
+    A principal função do bot é coletar feedback dos funcionários.
+
+    Os comandos disponíveis são:
+    - /sounovo: Para um funcionário se cadastrar pela primeira vez.
+    - /feedback: Para um funcionário já cadastrado iniciar o processo de dar um feedback.
+    - /cancelar: Para sair de um processo de cadastro ou feedback.
+
+    Um usuário enviou a seguinte mensagem que não é um comando válido: "{user_message}"
+
+    Sua tarefa é analisar a mensagem do usuário e responder de forma útil e concisa:
+    - Se a mensagem parecer uma pergunta sobre o que o bot faz, explique brevemente sua função.
+    - Se parecer um erro de digitação de um comando (ex: "/feedbak" ou "sounovo"), sugira o comando correto.
+    - Se for uma saudação ou uma pergunta genérica, responda educadamente e guie o usuário para um dos comandos disponíveis.
+
+    Seja sempre amigável e direcione o usuário para a ação correta.
+    """
+    try:
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=constants.ChatAction.TYPING)
+
+        response = client.models.generate_content(
+            model = "gemini-1.5-flash",
+            contents=prompt
+        )
+        response_text = response.text
+        try:
+            await update.message.reply_text(response_text, parse_mode=constants.ParseMode.HTML)
+        except BadRequest:
+            await update.message.reply_text(response_text)
+    except Exception as e:
+        logging.error(f"Erro no fallback da IA: {e}")
+        await update.message.reply_text("Desculpe, não entendi. Você pode usar /feedback para enviar sua opnião ou /sounovo para se cadastrar")
+
+
 async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("Operação cancelada. Se precisar, de algo mais, estou aqui")
     context.user_data.clear()
@@ -225,6 +265,8 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(feedback_handler)
     application.add_handler(cadastro_handler)
+    fallback_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, handle_fallback_message)
+    application.add_handler(fallback_handler)
 
     print("Bot iniciando!")
     application.run_polling(3)
