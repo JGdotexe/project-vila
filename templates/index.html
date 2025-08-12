@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - Feedbacks</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">📊 Dashboard de Feedbacks</h1>
+
+    <!-- Cards principais -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow p-6 text-center">
+        <p class="text-lg">Funcionários cadastrados</p>
+        <h2 class="text-2xl font-bold">{{ total_funcionarios }}</h2>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6 text-center">
+        <p class="text-lg">Feedbacks recebidos</p>
+        <h2 class="text-2xl font-bold">{{ respondidos }}</h2>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6 text-center">
+        <p class="text-lg">Participação</p>
+        <h2 class="text-2xl font-bold">{{ percentual }}%</h2>
+      </div>
+    </div>
+
+    <!-- Tabela por setor -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+      <h2 class="text-xl font-bold mb-4">📌 Funcionários por Setor</h2>
+      <table class="min-w-full text-left">
+        <thead>
+          <tr>
+            <th class="px-4 py-2 border-b">Setor</th>
+            <th class="px-4 py-2 border-b">Quantidade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for setor, qtd in setores.items() %}
+          <tr>
+            <td class="px-4 py-2 border-b">{{ setor }}</td>
+            <td class="px-4 py-2 border-b">{{ qtd }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- SECÇÃO CORRIGIDA -->
+    <!-- ======================================================= -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">🧠 Reports da IA</h2>
+      
+      <!-- Usamos .items() para obter a chave (setor) e o valor (resumo) -->
+      {% for setor, resumo in reports.items() %}
+      <div class="mb-4 p-4 border rounded">
+        <!-- Mostramos a variável 'setor' -->
+        <h3 class="font-bold">{{ setor }}</h3>
+        <!-- Mostramos a variável 'resumo' -->
+        <p>{{ resumo }}</p>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+</body>
+</html>
